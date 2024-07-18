@@ -3,14 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SeriesFormRequest;
-use App\Models\Episode;
-use App\Models\Season;
 use App\Models\series;
+use App\Repositories\EloquentSeriesRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SeriesController extends Controller
 {
+
+    public function __construct(private EloquentSeriesRepository $repository) 
+    {
+        /*
+        *Basicamente criou uma classe contrutora para acessar o repositorio e suas funções.
+        */
+    }
+
     public function index(Request $request)
     {
         //return $request->url();//RequestEX
@@ -50,36 +56,45 @@ class SeriesController extends Controller
         // $series = new series(); //ELOQUENT
         // $series->nome = $nomeSerie;//ELOQUENT
         // $series->save();//ELOQUENT
-        $serie = DB::transaction(function () use ($request, &$serie){ //TudoOuNada no banco de dados.
-            
-            
-            $serie = Series::create($request->all());
-            $seasons = [];
-            for ($i=1; $i <= $request->seasonQty; $i++) { 
-                $seasons[] = [
-                    'series_id' => $serie->id,
-                    'numero' => $i
-                ];
-            }
-            Season::insert($seasons);
-                
-            $Episodes = [];
-                foreach ($serie->seasons as $season) {
-                    for ($j=1; $j <= $request->espsodesPerSeason; $j++) { 
-                        
-                        $Episodes[] = [
-                            'season_id' => $season->id,
-                            'numero' => $j
-                        ];
-                    }
-                }
-            Episode::insert($Episodes);
 
-            return $serie;
-        });
+        /**
+         * Basicamente esta função abaixo ela faz um begin no banco e um commit apenas quando tudo estiver Ok para evitar erros na inserção de dados no BD, caso queira utilizar o 
+         * Try catch e tratar os dados pode se utilizr o DB::beginTransaction() para iniciar a transação no Try e no final o DB::Commit e caso queria voltar no CATH utilziar o RollBack
+         */
+
+
+        // $serie = DB::transaction(function () use ($request, &$serie){ //TudoOuNada no banco de dados.
+            
+            
+        //     $serie = Series::create($request->all());
+        //     $seasons = [];
+        //     for ($i=1; $i <= $request->seasonQty; $i++) { 
+        //         $seasons[] = [
+        //             'series_id' => $serie->id,
+        //             'numero' => $i
+        //         ];
+        //     }
+        //     Season::insert($seasons);
+                
+        //     $Episodes = [];
+        //         foreach ($serie->seasons as $season) {
+        //             for ($j=1; $j <= $request->espsodesPerSeason; $j++) { 
+                        
+        //                 $Episodes[] = [
+        //                     'season_id' => $season->id,
+        //                     'numero' => $j
+        //                 ];
+        //             }
+        //         }
+        //     Episode::insert($Episodes);
+
+        //     return $serie;
+        // });
         // $request->session()->put('mensagem.sucesso', 'Série Adicionada com sucesso');
 
         // return redirect('/series');
+
+        $serie = $this->repository->add($request); //Acessando a Classe Contrutor e o metodo add.
         
         return to_route('series.index')->with('mensagem.sucesso', "Série '{$serie->nome}' Adicionada com sucesso");
     }
