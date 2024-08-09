@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\Autenticador;
 use App\Http\Requests\SeriesFormRequest;
+use App\Mail\SeriesCreated;
 use App\Models\series;
+use App\Models\User;
+use Illuminate\Routing\Controller;
 use App\Repositories\EloquentSeriesRepository;
+use App\Repositories\SeriesRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SeriesController extends Controller
 {
 
-    public function __construct(private EloquentSeriesRepository $repository) 
+    public function __construct(private SeriesRepository $repository) 
     {
         /*
         *Basicamente criou uma classe contrutora para acessar o repositorio e suas funções.
         */
+        $this->middleware(Autenticador::class)->except('index');
     }
 
     public function index(Request $request)
@@ -94,7 +101,28 @@ class SeriesController extends Controller
 
         // return redirect('/series');
 
+        
         $serie = $this->repository->add($request); //Acessando a Classe Contrutor e o metodo add.
+        // dd($serie);
+        // dd($request->seasonQty, $request->espsodesPerSeason);
+
+        
+        $userList = User::all(); //mandando para todos os usuarios
+        // dd($userList);
+        foreach ($userList as $index => $user){
+    
+            $email = new SeriesCreated(
+                $serie->nome,
+                $serie->id,
+                $request->seasonQty,
+                $request->espsodesPerSeason,
+            );
+
+            $when = now()->addSeconds($index * 5); //Adicionando 5 segundo a cada index de usuario.
+            Mail::to($request->user())->later($when, $email);
+            // sleep(2);
+        }
+
         
         return to_route('series.index')->with('mensagem.sucesso', "Série '{$serie->nome}' Adicionada com sucesso");
     }
