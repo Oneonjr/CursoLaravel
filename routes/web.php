@@ -10,6 +10,7 @@ use App\Http\Middleware\Autenticador;
 use Illuminate\Http\Request;
 use App\Mail\SeriesCreated;
 use Illuminate\Support\Facades\Mail;
+// use App\Http\Controllers\Api\SeriesController;
 
 Route::get('/', function () {
     return redirect('/series');
@@ -62,3 +63,8 @@ Route::get('/test-email', function () {
 //     Route::get('/series/criar', 'create')->name('series.create'); 
 //     Route::post('/series/salvar', 'store')->name('series.store'); 
 // });
+
+
+//ROTAS da API
+
+Route::get('/api/series',[\App\Http\Controllers\Api\SeriesController::class, 'index']);
