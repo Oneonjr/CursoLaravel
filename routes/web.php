@@ -67,4 +67,6 @@ Route::get('/test-email', function () {
 
 //ROTAS da API
 
-Route::get('/api/series',[\App\Http\Controllers\Api\SeriesController::class, 'index']);
+
+// Route::apiResource('/api/series',\App\Http\Controllers\Api\SeriesController::class);
+// Route::get('/api/series',[\App\Http\Controllers\Api\SeriesController::class, 'index']);
